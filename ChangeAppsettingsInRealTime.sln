@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.181
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChangeAppsettingsInRealTime", "ChangeAppsettingsInRealTime\ChangeAppsettingsInRealTime.csproj", "{52B09DEB-74D9-4C3B-A85E-06916E1DF5B6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52B09DEB-74D9-4C3B-A85E-06916E1DF5B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52B09DEB-74D9-4C3B-A85E-06916E1DF5B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52B09DEB-74D9-4C3B-A85E-06916E1DF5B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52B09DEB-74D9-4C3B-A85E-06916E1DF5B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4E3A5062-F965-4DD1-BF3D-D88DE1892141}
+	EndGlobalSection
+EndGlobal
