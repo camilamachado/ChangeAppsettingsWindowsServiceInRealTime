@@ -40,7 +40,7 @@ namespace ChangeAppsettingsInRealTime
 
                        if (o.Save)
                        {
-                           AddOrUpdateAppSetting("Config:Repeat", Convert.ToString(o.Repeat));
+                           AddOrUpdateAppSetting("Config:Repeat", o.Repeat);
                            AddOrUpdateAppSetting("Config:Person", o.Person);
                            AddOrUpdateAppSetting("Config:Save", o.Save);
 
