@@ -1,5 +1,4 @@
-﻿using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Configuration;
+﻿using CommandLine;
 using Serilog;
 using System;
 using System.IO;
@@ -10,59 +9,57 @@ namespace ChangeAppsettingsInRealTime
 {
     public class Program
     {
-        // Command Lines disponíveis
-        [Option(Description = "Sujeito que deseja dizer olá")]
-        public string Subject { get; } = "world";
-
-        [Option(ShortName = "n", Description = "Quantas vezes deseja dizer olá")]
-        public int Count { get; } = 1;
-
-        // Esse método é chamado quando o serviço é inicializado e cada vez que um Command Line válido é executado
-        private void OnExecute()
+        public class Options
         {
-            for (var i = 0; i < Count; i++)
-            {
-                Log.Debug($"Hello {Subject}!");
-                Console.WriteLine($"Hello {Subject}!");
-            }
+            [Option('r', "repeat", Required = false, HelpText = "Quantas vezes deseja dizer olá")]
+            public int Repeat { get; set; } = 1;
 
-            AddOrUpdateAppSetting("Config:Subject", "Dev");
+            [Option('p', "person", Required = false, HelpText = "Pra quem deseja dizer olá")]
+            public string Person { get; set; } = "world";
 
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-
-            var subjectAppsettings = config["Config:Subject"];
-
-            for (var i = 0; i < Count; i++)
-            {
-                Log.Debug($"Hello {subjectAppsettings}!");
-                Console.WriteLine($"Hello {subjectAppsettings}!");
-            }
+            [Option('s', "save", Required = false, HelpText = "Deseja salvar alterações no appsettings?")]
+            public bool Save { get; set; } = false;
         }
 
         public static int Main(string[] args)
         {
             // Configurando log
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.File($"{AppContext.BaseDirectory}\\log.txt", outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-                .CreateLogger();
+                             .MinimumLevel.Debug()
+                             .WriteTo.File($"{AppContext.BaseDirectory}\\log.txt", outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                             .CreateLogger();
 
             // Inicializando CommandLine
-            CommandLineApplication.Execute<Program>(args);
+            Parser.Default.ParseArguments<Options>(args)
+                   .WithParsed<Options>(o =>
+                   {
+                       for (var i = 0; i < o.Repeat; i++)
+                       {
+                           Console.WriteLine($"Hello {o.Person}!");
+                       }
+
+                       if (o.Save)
+                       {
+                           AddOrUpdateAppSetting("Config:Repeat", Convert.ToString(o.Repeat));
+                           AddOrUpdateAppSetting("Config:Person", o.Person);
+                           AddOrUpdateAppSetting("Config:Save", o.Save);
+
+                           Console.WriteLine($"Dados salvos com sucesso!");
+                       }
+                   });
 
             // Configurando serviço windows usando o Topshelf
             return (int)HostFactory.Run(configurator =>
             {
-                int count = 1;
-                // Aqui foi necessário a sobrecarga do comando n
+                // Aqui foi necessário a sobrecarga dos comandos
                 // pois sem essa configuração o Topshelf não reconhece o comando
                 // e apresenta erro no console
-                configurator.AddCommandLineDefinition("n", c =>
-                {
-                    count = Convert.ToInt32(c);
-                });
+                configurator.AddCommandLineDefinition("r", c => { });
+                configurator.AddCommandLineDefinition("p", c => { });
+                configurator.AddCommandLineDefinition("s", c => { });
+                configurator.AddCommandLineDefinition("repeat", c => { });
+                configurator.AddCommandLineDefinition("person", c => { });
+                configurator.AddCommandLineDefinition("save", c => { });
                 configurator.ApplyCommandLine();
 
                 configurator.Service<MainTask>(host =>
@@ -72,9 +69,9 @@ namespace ChangeAppsettingsInRealTime
                     host.WhenStopped(instance => instance.Stop());
                 });
 
-                configurator.SetServiceName("1Teste");
-                configurator.SetDisplayName("1Teste");
-                configurator.SetDescription("----");
+                configurator.SetServiceName("OlaMundo");
+                configurator.SetDisplayName("Olá Mundo");
+                configurator.SetDescription("---------ChangeAppsettingsInRealTime----------");
 
                 configurator.UseEnvironmentBuilder(cfg => new DotNetCoreEnvironmentBuilder(cfg));
                 configurator.RunAsLocalSystem();
@@ -95,6 +92,7 @@ namespace ChangeAppsettingsInRealTime
         {
             try
             {
+                Log.Debug($"Salvando no appsettings na chave {key} o valor {key}");
 
                 var filePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
                 string json = File.ReadAllText(filePath);
@@ -116,7 +114,7 @@ namespace ChangeAppsettingsInRealTime
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error writing app settings {ex}");
+                Log.Error(ex, "Falha ao gravar alterações no appsettings");
             }
         }
     }
