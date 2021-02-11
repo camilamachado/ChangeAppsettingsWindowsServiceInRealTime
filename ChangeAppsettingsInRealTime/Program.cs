@@ -51,9 +51,10 @@ namespace ChangeAppsettingsInRealTime
             // Configurando serviço windows usando o Topshelf
             return (int)HostFactory.Run(configurator =>
             {
-                // Aqui foi necessário a sobrecarga dos comandos
-                // pois sem essa configuração o Topshelf não reconhece o comando
-                // e apresenta erro no console
+                //Aqui foi necessário a sobrecarga dos comandos
+                //pois sem essa configuração o Topshelf não reconhece os comandos
+                //e apresenta erro no console, não deve ser a melhor forma, mas como o objetivo do estudo
+                //é apenas gravar informações no appsettings, essa parte é apenas usada para teste
                 configurator.AddCommandLineDefinition("r", c => { });
                 configurator.AddCommandLineDefinition("p", c => { });
                 configurator.AddCommandLineDefinition("s", c => { });
