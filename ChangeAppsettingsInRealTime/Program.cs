@@ -1,7 +1,8 @@
-﻿using CommandLine;
+﻿using ChangeAppsettingsInRealTime.CommandLines;
+using ChangeAppsettingsInRealTime.Services;
+using CommandLine;
 using Serilog;
 using System;
-using System.IO;
 using Topshelf;
 using Topshelf.Runtime.DotNetCore;
 
@@ -9,20 +10,10 @@ namespace ChangeAppsettingsInRealTime
 {
     public class Program
     {
-        public class Options
-        {
-            [Option('r', "repeat", Required = false, HelpText = "Quantas vezes deseja dizer olá")]
-            public int Repeat { get; set; } = 1;
-
-            [Option('p', "person", Required = false, HelpText = "Pra quem deseja dizer olá")]
-            public string Person { get; set; } = "world";
-
-            [Option('s', "save", Required = false, HelpText = "Deseja salvar alterações no appsettings?")]
-            public bool Save { get; set; } = false;
-        }
-
         public static int Main(string[] args)
         {
+            var appsettingsService = new AppsettingsService();
+
             // Configurando log
             Log.Logger = new LoggerConfiguration()
                              .MinimumLevel.Debug()
@@ -40,15 +31,15 @@ namespace ChangeAppsettingsInRealTime
 
                        if (o.Save)
                        {
-                           AddOrUpdateAppSetting("Config:Repeat", o.Repeat);
-                           AddOrUpdateAppSetting("Config:Person", o.Person);
-                           AddOrUpdateAppSetting("Config:Save", o.Save);
+                           appsettingsService.Write("Config:Repeat", o.Repeat);
+                           appsettingsService.Write("Config:Person", o.Person);
+                           appsettingsService.Write("Config:Save", o.Save);
 
                            Console.WriteLine($"Dados salvos com sucesso!");
                        }
                    });
 
-            // Configurando serviço windows usando o Topshelf
+
             return (int)HostFactory.Run(configurator =>
             {
                 //Aqui foi necessário a sobrecarga dos comandos
@@ -86,37 +77,6 @@ namespace ChangeAppsettingsInRealTime
                     recovery.RestartService(3);
                 });
             });
-        }
-
-        // Método responsável por alterar as configurações no appsettings
-        public static void AddOrUpdateAppSetting<T>(string key, T value)
-        {
-            try
-            {
-                Log.Debug($"Salvando no appsettings na chave {key} o valor {key}");
-
-                var filePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
-                string json = File.ReadAllText(filePath);
-                dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-
-                var sectionPath = key.Split(":")[0];
-                if (!string.IsNullOrEmpty(sectionPath))
-                {
-                    var keyPath = key.Split(":")[1];
-                    jsonObj[sectionPath][keyPath] = value;
-                }
-                else
-                {
-                    jsonObj[sectionPath] = value;
-                }
-                string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-                File.WriteAllText(filePath, output);
-
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Falha ao gravar alterações no appsettings");
-            }
         }
     }
 }

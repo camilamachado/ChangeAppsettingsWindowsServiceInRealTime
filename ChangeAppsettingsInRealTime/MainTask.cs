@@ -6,12 +6,12 @@ namespace ChangeAppsettingsInRealTime
     {
         public void Start()
         {
-            Log.Debug("Iniciando serviço....");
+            Log.Information("Iniciando serviço....");
         }
 
         public void Stop()
         {
-            Log.Debug("Serviço foi parado!");
+            Log.Information("Serviço foi parado!");
         }
     }
 }
